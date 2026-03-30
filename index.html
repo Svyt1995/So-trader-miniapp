@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Трейдер · Mini App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #050910;
+      min-height: 100vh;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      color: #e8f0ff;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .shell {
+      width: min(1040px, 100%);
+      border-radius: 28px;
+      background: radial-gradient(140% 120% at 50% 0%, rgba(14,23,39,0.95) 0%, rgba(4,8,18,0.92) 100%);
+      padding: clamp(16px, 4vw, 28px);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(70, 96, 138, 0.18);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: clamp(16px, 3vw, 28px);
+    }
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .title h1 {
+      margin: 0;
+      font-size: clamp(22px, 5vw, 26px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .title span {
+      color: #7d94b8;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tabs button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(42, 62, 94, 0.5);
+      color: #d5e5ff;
+      cursor: pointer;
+      transition: 0.2s background;
+    }
+    .tabs button.active {
+      background: linear-gradient(135deg, #486bc1, #3a9ae0);
+      color: white;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(14px, 3vw, 22px);
+    }
+    .card {
+      background: rgba(17, 28, 46, 0.92);
+      border-radius: 24px;
+      padding: clamp(18px, 3vw, 24px);
+      box-shadow: inset 0 0 0 1px rgba(62, 84, 120, 0.14);
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #7e95ba;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+    .metric span.title {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6d87a7;
+      margin-bottom: 6px;
+    }
+    .metric span.value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: #6c88ab;
+      text-transform: uppercase;
+      padding-bottom: 6px;
+    }
+    td {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(60, 82, 112, 0.2);
+    }
+    .tag {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .tag.long { background: rgba(66, 176, 158, 0.2); color: #63d5b4; }
+    .tag.short { background: rgba(214, 108, 126, 0.2); color: #f27b94; }
+    .ai-card {
+      margin-top: 10px;
+      min-height: 120px;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      letter-spacing: 0.14em;
+      font-weight: 600;
+      color: #efeaff;
+      background: linear-gradient(135deg, rgba(74, 66, 146, 0.9), rgba(40, 32, 102, 0.92));
+      border: 1px solid rgba(120, 110, 220, 0.55);
+      text-align: center;
+      padding: 16px;
+    }
+    .ai-card span.message {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #c6c1ff;
+    }
+    canvas {
+      width: 100% !important;
+      height: clamp(200px, 40vw, 240px) !important;
+    }
+    footer {
+      margin-top: clamp(14px, 3vw, 22px);
+      text-align: center;
+      font-size: 12px;
+      color: #6f88a8;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 860px) {
+      body {
+        padding: 12px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .shell {
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title">
+        <h1>AI Трейдер</h1>
+        <span id="current-time">27 марта 2026 · 06:40 МСК</span>
+      </div>
+      <div class="tabs" id="mode-tabs">
+        <button class="active" data-mode="day">AI Trader · Day</button>
+        <button data-mode="swing">AI Trader · Swing</button>
+        <button data-mode="scalper">Quant Bot · Scalper</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card" id="account-card">
+        <h2>Счёт</h2>
+        <div class="metrics" id="account-metrics"></div>
+      </section>
+      <section class="card">
+        <h2>ИИ советник</h2>
+        <div class="ai-card">
+          <div>AI ассистент</div>
+          <span class="message" id="ai-message">Советник ждёт подключения к реальным данным.</span>
+        </div>
+      </section>
+      <section class="card" style="grid-column: span 2">
+        <h2>Активные сделки</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Пара</th>
+              <th>Тип</th>
+              <th>Вход</th>
+              <th>Стоп</th>
+              <th>Цель</th>
+              <th>PnL</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body"></tbody>
+        </table>
+      </section>
+      <section class="card">
+        <h2>Аналитика сделок</h2>
+        <canvas id="equityChart"></canvas>
+      </section>
+      <section class="card">
+        <h2>Последние сделки</h2>
+        <table>
+          <tbody id="history-body"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <footer>Журнал · Статистика · Настройки</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const mockData = {
+      modes: {
+        day: {
+          time: '27 марта 2026 · 06:40 МСК',
+          account: {
+            balance: 98420,
+            equity: 101080,
+            freeMargin: 28200,
+            ddDay: '-1.8% / -5%',
+            ddMonth: '-3.2% / -10%'
+          },
+          positions: [
+            { symbol: 'ETHUSDT', type: 'long', entry: '3 253', stop: '3 210', target: '3 360', pnl: '+1.8R', status: 'В работе' },
+            { symbol: 'SOLUSDT', type: 'short', entry: '188.4', stop: '191.0', target: '178.5', pnl: '-0.6R', status: 'Контроль' },
+            { symbol: 'WIFUSDT', type: 'long', entry: '4.92', stop: '4.70', target: '5.60', pnl: '+2.4R', status: 'Частично' }
+          ],
+          history: [
+            { time: '27.03 · 09:12', symbol: 'ETHUSDT', type: 'Лонг', entry: '3 253', exit: '3 360', pnl: '+1.8R' },
+            { time: '27.03 · 08:05', symbol: 'SOLUSDT', type: 'Шорт', entry: '188.4', exit: '178.5', pnl: '-0.6R' },
+            { time: '26.03 · 15:40', symbol: 'WIFUSDT', type: 'Лонг', entry: '4.92', exit: '5.60', pnl: '+2.4R' }
+          ],
+          equityPoints: [
+            { time: '01:00', value: 0.98 },
+            { time: '05:00', value: 1.01 },
+            { time: '09:00', value: 1.04 },
+            { time: '13:00', value: 1.12 },
+            { time: '17:00', value: 1.08 },
+            { time: '21:00', value: 1.06 }
+          ],
+          message: 'Текущие сигналы выровнены с дневным риск-профилем.'
+        },
+        swing: {
+          time: '27 марта 2026 · 06:40 МСК',
+          account: {
+            balance: 125400,
+            equity: 129880,
+            freeMargin: 44200,
+            ddDay: '-0.9% / -4%',
+            ddMonth: '-2.1% / -9%'
+          },
+          positions: [
+            { symbol: 'BTCUSDT', type: 'long', entry: '92 450', stop: '90 920', target: '98 600', pnl: '+1.1R', status: 'В работе' },
+            { symbol: 'XAUUSD', type: 'long', entry: '2 188', stop: '2 160', target: '2 260', pnl: '+0.7R', status: 'Старт' }
+          ],
+          history: [
+            { time: '26.03 · 17:30', symbol: 'BTCUSDT', type: 'Лонг', entry: '91 200', exit: '95 400', pnl: '+1.6R' },
+            { time: '25.03 · 14:10', symbol: 'XAGUSD', type: 'Лонг', entry: '26.8', exit: '28.2', pnl: '+1.4R' }
+          ],
+          equityPoints: [
+            { time: 'Пн', value: 1.00 },
+            { time: 'Вт', value: 1.02 },
+            { time: 'Ср', value: 1.05 },
+            { time: 'Чт', value: 1.07 },
+            { time: 'Пт', value: 1.09 }
+          ],
+          message: 'Swing-портфель держит позиции в золоте и BTC. Просадка в пределах нормы.'
+        },
+        scalper: {
+          time: '27 марта 2026 · 06:40 МСК',
+          account: {
+            balance: 45200,
+            equity: 46880,
+            freeMargin: 8600,
+            ddDay: '-2.4% / -6%',
+            ddMonth: '-4.5% / -11%'
+          },
+          positions: [
+            { symbol: 'HYPEUSDT', type: 'short', entry: '1.402', stop: '1.436', target: '1.310', pnl: '+0.9R', status: 'В работе' },
+            { symbol: 'WIFUSDT', type: 'long', entry: '4.82', stop: '4.75', target: '4.98', pnl: '+0.4R', status: 'Контроль' }
+          ],
+          history: [
+            { time: '27.03 · 06:10', symbol: 'HYPEUSDT', type: 'Шорт', entry: '1.452', exit: '1.402', pnl: '+1.0R' },
+            { time: '27.03 · 05:45', symbol: 'SOLUSDT', type: 'Лонг', entry: '187.1', exit: '188.0', pnl: '+0.3R' }
+          ],
+          equityPoints: [
+            { time: '06:00', value: 1.00 },
+            { time: '07:00', value: 1.02 },
+            { time: '08:00', value: 0.99 },
+            { time: '09:00', value: 1.03 },
+            { time: '10:00', value: 1.05 }
+          ],
+          message: 'Скальперский блок за ночь сделал +1.9R. Удерживай лимиты по риск-модели.'
+        }
+      }
+    };
+
+    const accountMetricsEl = document.getElementById('account-metrics');
+    const positionsBody = document.getElementById('positions-body');
+    const historyBody = document.getElementById('history-body');
+    const currentTime = document.getElementById('current-time');
+    const aiMessage = document.getElementById('ai-message');
+    const tabsEl = document.getElementById('mode-tabs');
+    let chartInstance;
+
+    function renderMode(modeKey) {
+      const data = mockData.modes[modeKey];
+      currentTime.textContent = data.time;
+      aiMessage.textContent = data.message;
+
+      accountMetricsEl.innerHTML = '';
+      const metrics = [
+        { title: 'Баланс', value: `${data.account.balance.toLocaleString('ru-RU')} $` },
+        { title: 'Эквити', value: `${data.account.equity.toLocaleString('ru-RU')} $` },
+        { title: 'Свободно', value: `${data.account.freeMargin.toLocaleString('ru-RU')} $` },
+        { title: 'Просадка дня', value: data.account.ddDay },
+        { title: 'Просадка месяца', value: data.account.ddMonth }
+      ];
+      metrics.forEach(metric => {
+        const div = document.createElement('div');
+        div.className = 'metric';
+        div.innerHTML = `
+          <span class="title">${metric.title}</span>
+          <span class="value">${metric.value}</span>
+        `;
+        accountMetricsEl.appendChild(div);
+      });
+
+      positionsBody.innerHTML = '';
+      data.positions.forEach(pos => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${pos.symbol}</td>
+          <td><span class="tag ${pos.type}">${pos.type === 'long' ? 'Лонг' : 'Шорт'}</span></td>
+          <td>${pos.entry}</td>
+          <td>${pos.stop}</td>
+          <td>${pos.target}</td>
+          <td style="color:${pos.pnl.startsWith('+') ? '#65d8b8' : '#f07b93'}">${pos.pnl}</td>
+          <td>${pos.status}</td>
+        `;
+        positionsBody.appendChild(tr);
+      });
+
+      historyBody.innerHTML = '';
+      data.history.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.time}</td>
+          <td>${item.symbol}</td>
+          <td>${item.type}</td>
+          <td>${item.entry}</td>
+          <td>${item.exit}</td>
+          <td style="color:${item.pnl.startsWith('+') ? '#65d8b8' : '#f07b93'}">${item.pnl}</td>
+        `;
+        historyBody.appendChild(tr);
+      });
+
+      const ctx = document.getElementById('equityChart');
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.equityPoints.map(p => p.time),
+          datasets: [{
+            label: 'Эквити',
+            data: data.equityPoints.map(p => p.value),
+            fill: true,
+            backgroundColor: 'rgba(86, 200, 186, 0.18)',
+            borderColor: '#64d8b8',
+            pointBackgroundColor: '#64d8b8',
+            pointBorderWidth: 0,
+            tension: 0.35,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: '#7c94bb', font: { size: 11 } },
+              grid: { color: 'rgba(90, 110, 140, 0.15)' }
+            },
+            y: {
+              ticks: { color: '#7c94bb', font: { size: 11 } },
+              grid: { color: 'rgba(90, 110, 140, 0.15)' }
+            }
+          }
+        }
+      });
+    }
+
+    tabsEl.addEventListener('click', (event) => {
+      if (event.target.tagName !== 'BUTTON') return;
+      const selected = event.target.dataset.mode;
+      tabsEl.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === selected));
+      renderMode(selected);
+    });
+
+    renderMode('day');
+
+    if (window.Telegram && window.Telegram.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      tg.setHeaderColor('#050910');
+      tg.setBackgroundColor('#050910');
+      tg.ready();
+    }
+  </script>
+</body>
+</html>
