@@ -1,6 +1,5 @@
 import json
 
-
 def handler(request):
     equity = [
         {"time": "01:00", "value": 0.98},

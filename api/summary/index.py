@@ -1,6 +1,5 @@
 import json
 
-
 def handler(request):
     data = {
         "time": "27 марта 2026 · 06:40 МСК",

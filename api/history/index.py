@@ -1,6 +1,5 @@
 import json
 
-
 def handler(request):
     history = [
         {
