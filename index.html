@@ -89,6 +89,7 @@
       border-radius: 24px;
       padding: clamp(18px, 3vw, 24px);
       box-shadow: inset 0 0 0 1px rgba(62, 84, 120, 0.14);
+      position: relative;
     }
     .card h2 {
       margin: 0 0 16px;
@@ -176,6 +177,17 @@
       letter-spacing: 0.16em;
       text-transform: uppercase;
     }
+    .status-message {
+      display: none;
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: #8fa9d8;
+    }
+    .status-message.error {
+      color: #f57a8b;
+    }
     @media (max-width: 860px) {
       body {
         padding: 12px;
@@ -191,10 +203,11 @@
 </head>
 <body>
   <div class="shell">
+    <p id="status-message" class="status-message">Обновляем данные...</p>
     <header>
       <div class="title">
         <h1>AI Трейдер</h1>
-        <span id="current-time">27 марта 2026 · 06:40 МСК</span>
+        <span id="current-time">—</span>
       </div>
       <div class="tabs" id="mode-tabs">
         <button class="active" data-mode="day">AI Trader · Day</button>
@@ -212,7 +225,7 @@
         <h2>ИИ советник</h2>
         <div class="ai-card">
           <div>AI ассистент</div>
-          <span class="message" id="ai-message">Советник ждёт подключения к реальным данным.</span>
+          <span class="message" id="ai-message">Загружаем рекомендации...</span>
         </div>
       </section>
       <section class="card" style="grid-column: span 2">
@@ -249,112 +262,112 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
-    const mockData = {
-      modes: {
-        day: {
-          time: '27 марта 2026 · 06:40 МСК',
-          account: {
-            balance: 98420,
-            equity: 101080,
-            freeMargin: 28200,
-            ddDay: '-1.8% / -5%',
-            ddMonth: '-3.2% / -10%'
-          },
-          positions: [
-            { symbol: 'ETHUSDT', type: 'long', entry: '3 253', stop: '3 210', target: '3 360', pnl: '+1.8R', status: 'В работе' },
-            { symbol: 'SOLUSDT', type: 'short', entry: '188.4', stop: '191.0', target: '178.5', pnl: '-0.6R', status: 'Контроль' },
-            { symbol: 'WIFUSDT', type: 'long', entry: '4.92', stop: '4.70', target: '5.60', pnl: '+2.4R', status: 'Частично' }
-          ],
-          history: [
-            { time: '27.03 · 09:12', symbol: 'ETHUSDT', type: 'Лонг', entry: '3 253', exit: '3 360', pnl: '+1.8R' },
-            { time: '27.03 · 08:05', symbol: 'SOLUSDT', type: 'Шорт', entry: '188.4', exit: '178.5', pnl: '-0.6R' },
-            { time: '26.03 · 15:40', symbol: 'WIFUSDT', type: 'Лонг', entry: '4.92', exit: '5.60', pnl: '+2.4R' }
-          ],
-          equityPoints: [
-            { time: '01:00', value: 0.98 },
-            { time: '05:00', value: 1.01 },
-            { time: '09:00', value: 1.04 },
-            { time: '13:00', value: 1.12 },
-            { time: '17:00', value: 1.08 },
-            { time: '21:00', value: 1.06 }
-          ],
-          message: 'Текущие сигналы выровнены с дневным риск-профилем.'
-        },
-        swing: {
-          time: '27 марта 2026 · 06:40 МСК',
-          account: {
-            balance: 125400,
-            equity: 129880,
-            freeMargin: 44200,
-            ddDay: '-0.9% / -4%',
-            ddMonth: '-2.1% / -9%'
-          },
-          positions: [
-            { symbol: 'BTCUSDT', type: 'long', entry: '92 450', stop: '90 920', target: '98 600', pnl: '+1.1R', status: 'В работе' },
-            { symbol: 'XAUUSD', type: 'long', entry: '2 188', stop: '2 160', target: '2 260', pnl: '+0.7R', status: 'Старт' }
-          ],
-          history: [
-            { time: '26.03 · 17:30', symbol: 'BTCUSDT', type: 'Лонг', entry: '91 200', exit: '95 400', pnl: '+1.6R' },
-            { time: '25.03 · 14:10', symbol: 'XAGUSD', type: 'Лонг', entry: '26.8', exit: '28.2', pnl: '+1.4R' }
-          ],
-          equityPoints: [
-            { time: 'Пн', value: 1.00 },
-            { time: 'Вт', value: 1.02 },
-            { time: 'Ср', value: 1.05 },
-            { time: 'Чт', value: 1.07 },
-            { time: 'Пт', value: 1.09 }
-          ],
-          message: 'Swing-портфель держит позиции в золоте и BTC. Просадка в пределах нормы.'
-        },
-        scalper: {
-          time: '27 марта 2026 · 06:40 МСК',
-          account: {
-            balance: 45200,
-            equity: 46880,
-            freeMargin: 8600,
-            ddDay: '-2.4% / -6%',
-            ddMonth: '-4.5% / -11%'
-          },
-          positions: [
-            { symbol: 'HYPEUSDT', type: 'short', entry: '1.402', stop: '1.436', target: '1.310', pnl: '+0.9R', status: 'В работе' },
-            { symbol: 'WIFUSDT', type: 'long', entry: '4.82', stop: '4.75', target: '4.98', pnl: '+0.4R', status: 'Контроль' }
-          ],
-          history: [
-            { time: '27.03 · 06:10', symbol: 'HYPEUSDT', type: 'Шорт', entry: '1.452', exit: '1.402', pnl: '+1.0R' },
-            { time: '27.03 · 05:45', symbol: 'SOLUSDT', type: 'Лонг', entry: '187.1', exit: '188.0', pnl: '+0.3R' }
-          ],
-          equityPoints: [
-            { time: '06:00', value: 1.00 },
-            { time: '07:00', value: 1.02 },
-            { time: '08:00', value: 0.99 },
-            { time: '09:00', value: 1.03 },
-            { time: '10:00', value: 1.05 }
-          ],
-          message: 'Скальперский блок за ночь сделал +1.9R. Удерживай лимиты по риск-модели.'
-        }
-      }
-    };
-
+    const statusMessage = document.getElementById('status-message');
     const accountMetricsEl = document.getElementById('account-metrics');
     const positionsBody = document.getElementById('positions-body');
     const historyBody = document.getElementById('history-body');
     const currentTime = document.getElementById('current-time');
     const aiMessage = document.getElementById('ai-message');
     const tabsEl = document.getElementById('mode-tabs');
+    const ctx = document.getElementById('equityChart');
+
     let chartInstance;
+    let currentMode = 'day';
+
+    const state = {
+      day: {
+        time: '—',
+        account: {
+          balance: 0,
+          equity: 0,
+          freeMargin: 0,
+          ddDay: '—',
+          ddMonth: '—'
+        },
+        positions: [],
+        history: [],
+        equityPoints: [],
+        message: 'Советник ждёт подключения к реальным данным.'
+      },
+      swing: {
+        time: '27 марта 2026 · 06:40 МСК',
+        account: {
+          balance: 125400,
+          equity: 129880,
+          freeMargin: 44200,
+          ddDay: '-0.9% / -4%',
+          ddMonth: '-2.1% / -9%'
+        },
+        positions: [
+          { symbol: 'BTCUSDT', type: 'long', entry: '92 450', stop: '90 920', target: '98 600', pnl: '+1.1R', status: 'В работе' },
+          { symbol: 'XAUUSD', type: 'long', entry: '2 188', stop: '2 160', target: '2 260', pnl: '+0.7R', status: 'Старт' }
+        ],
+        history: [
+          { time: '26.03 · 17:30', symbol: 'BTCUSDT', type: 'Лонг', entry: '91 200', exit: '95 400', pnl: '+1.6R' },
+          { time: '25.03 · 14:10', symbol: 'XAGUSD', type: 'Лонг', entry: '26.8', exit: '28.2', pnl: '+1.4R' }
+        ],
+        equityPoints: [
+          { time: 'Пн', value: 1.00 },
+          { time: 'Вт', value: 1.02 },
+          { time: 'Ср', value: 1.05 },
+          { time: 'Чт', value: 1.07 },
+          { time: 'Пт', value: 1.09 }
+        ],
+        message: 'Swing-портфель держит позиции в золоте и BTC. Просадка в пределах нормы.'
+      },
+      scalper: {
+        time: '27 марта 2026 · 06:40 МСК',
+        account: {
+          balance: 45200,
+          equity: 46880,
+          freeMargin: 8600,
+          ddDay: '-2.4% / -6%',
+          ddMonth: '-4.5% / -11%'
+        },
+        positions: [
+          { symbol: 'HYPEUSDT', type: 'short', entry: '1.402', stop: '1.436', target: '1.310', pnl: '+0.9R', status: 'В работе' },
+          { symbol: 'WIFUSDT', type: 'long', entry: '4.82', stop: '4.75', target: '4.98', pnl: '+0.4R', status: 'Контроль' }
+        ],
+        history: [
+          { time: '27.03 · 06:10', symbol: 'HYPEUSDT', type: 'Шорт', entry: '1.452', exit: '1.402', pnl: '+1.0R' },
+          { time: '27.03 · 05:45', symbol: 'SOLUSDT', type: 'Лонг', entry: '187.1', exit: '188.0', pnl: '+0.3R' }
+        ],
+        equityPoints: [
+          { time: '06:00', value: 1.00 },
+          { time: '07:00', value: 1.02 },
+          { time: '08:00', value: 0.99 },
+          { time: '09:00', value: 1.03 },
+          { time: '10:00', value: 1.05 }
+        ],
+        message: 'Скальперский блок за ночь сделал +1.9R. Удерживай лимиты по риск-модели.'
+      }
+    };
+
+    function setStatus(message, isError = false) {
+      if (!message) {
+        statusMessage.style.display = 'none';
+        statusMessage.textContent = '';
+        statusMessage.classList.remove('error');
+        return;
+      }
+      statusMessage.textContent = message;
+      statusMessage.style.display = 'block';
+      statusMessage.classList.toggle('error', isError);
+    }
 
     function renderMode(modeKey) {
-      const data = mockData.modes[modeKey];
+      const data = state[modeKey];
+      currentMode = modeKey;
       currentTime.textContent = data.time;
       aiMessage.textContent = data.message;
 
       accountMetricsEl.innerHTML = '';
       const metrics = [
-        { title: 'Баланс', value: `${data.account.balance.toLocaleString('ru-RU')} $` },
-        { title: 'Эквити', value: `${data.account.equity.toLocaleString('ru-RU')} $` },
-        { title: 'Свободно', value: `${data.account.freeMargin.toLocaleString('ru-RU')} $` },
-        { title: 'Просадка дня', value: data.account.ddDay },
-        { title: 'Просадка месяца', value: data.account.ddMonth }
+        { title: 'Баланс', value: `${Number(data.account.balance || 0).toLocaleString('ru-RU')} $` },
+        { title: 'Эквити', value: `${Number(data.account.equity || 0).toLocaleString('ru-RU')} $` },
+        { title: 'Свободно', value: `${Number(data.account.freeMargin || 0).toLocaleString('ru-RU')} $` },
+        { title: 'Просадка дня', value: data.account.ddDay || '—' },
+        { title: 'Просадка месяца', value: data.account.ddMonth || '—' }
       ];
       metrics.forEach(metric => {
         const div = document.createElement('div');
@@ -395,7 +408,6 @@
         historyBody.appendChild(tr);
       });
 
-      const ctx = document.getElementById('equityChart');
       if (chartInstance) {
         chartInstance.destroy();
       }
@@ -433,6 +445,41 @@
       });
     }
 
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    }
+
+    async function loadDayData() {
+      try {
+        setStatus('Обновляем данные...');
+        const [summary, positions, history, equity] = await Promise.all([
+          fetchJson('/api/summary'),
+          fetchJson('/api/positions'),
+          fetchJson('/api/history'),
+          fetchJson('/api/equity')
+        ]);
+
+        state.day.time = summary.time || state.day.time;
+        state.day.account = summary.account || state.day.account;
+        state.day.message = summary.message || state.day.message;
+        state.day.positions = positions.positions || [];
+        state.day.history = history.history || [];
+        state.day.equityPoints = equity.equity || [];
+
+        setStatus(null);
+        if (currentMode === 'day') {
+          renderMode('day');
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных', error);
+        setStatus('Не удалось обновить данные. Проверь подключение.', true);
+      }
+    }
+
     tabsEl.addEventListener('click', (event) => {
       if (event.target.tagName !== 'BUTTON') return;
       const selected = event.target.dataset.mode;
@@ -441,6 +488,7 @@
     });
 
     renderMode('day');
+    loadDayData();
 
     if (window.Telegram && window.Telegram.WebApp) {
       const tg = window.Telegram.WebApp;
