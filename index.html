@@ -276,20 +276,7 @@
     let currentMode = 'day';
 
     const state = {
-      day: {
-        time: '—',
-        account: {
-          balance: 0,
-          equity: 0,
-          freeMargin: 0,
-          ddDay: '—',
-          ddMonth: '—'
-        },
-        positions: [],
-        history: [],
-        equityPoints: [],
-        message: 'Советник ждёт подключения к реальным данным.'
-      },
+      day: null,
       swing: {
         time: '27 марта 2026 · 06:40 МСК',
         account: {
@@ -464,12 +451,14 @@
           fetchJson(`${API_BASE}/equity`)
         ]);
 
-        state.day.time = summary.time || state.day.time;
-        state.day.account = summary.account || state.day.account;
-        state.day.message = summary.message || state.day.message;
-        state.day.positions = positions.positions || [];
-        state.day.history = history.history || [];
-        state.day.equityPoints = equity.equity || [];
+        state.day = {
+          time: summary.time || '—',
+          account: summary.account || { balance: 0, equity: 0, freeMargin: 0, ddDay: '—', ddMonth: '—' },
+          message: summary.message || 'Советник ждёт подключения к реальным данным.',
+          positions: positions.positions || [],
+          history: history.history || [],
+          equityPoints: equity.equity || []
+        };
 
         setStatus(null);
         if (currentMode === 'day') {
