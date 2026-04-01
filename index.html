@@ -270,6 +270,7 @@
     const aiMessage = document.getElementById('ai-message');
     const tabsEl = document.getElementById('mode-tabs');
     const ctx = document.getElementById('equityChart');
+    const API_BASE = 'https://api.167-99-248-76.sslip.io';
 
     let chartInstance;
     let currentMode = 'day';
@@ -457,10 +458,10 @@
       try {
         setStatus('Обновляем данные...');
         const [summary, positions, history, equity] = await Promise.all([
-          fetchJson('/api/summary'),
-          fetchJson('/api/positions'),
-          fetchJson('/api/history'),
-          fetchJson('/api/equity')
+          fetchJson(`${API_BASE}/summary`),
+          fetchJson(`${API_BASE}/positions`),
+          fetchJson(`${API_BASE}/history`),
+          fetchJson(`${API_BASE}/equity`)
         ]);
 
         state.day.time = summary.time || state.day.time;
